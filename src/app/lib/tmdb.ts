@@ -26,7 +26,7 @@ export interface TmdbSearchResult {
 
 interface TmdbPaginatedResponse {
     page: number;
-    // *** FIXED Line 34: Changed any[] to Record<string, any>[] ***
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any <-- ADD THIS COMMENT
     results: Record<string, any>[]; // Use Record<string, any> instead of any
     total_pages: number;
     total_results: number;
