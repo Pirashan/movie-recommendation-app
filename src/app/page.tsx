@@ -1,103 +1,136 @@
-import Image from "next/image";
+// src/app/page.tsx
+'use client'; // Page now needs to be a Client Component for state and effects
+
+import React, { useState, useEffect, useCallback } from 'react';
+import SearchBar from "./components/search/SearchBar";
+import RecommendationList from './components/recommendations/RecommendationList'; // Import the new component
+import type { TmdbSearchResult } from './lib/tmdb'; // Use relative path from page
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  // --- State Variables ---
+  const [selectedItem, setSelectedItem] = useState<TmdbSearchResult | null>(null);
+  const [recommendations, setRecommendations] = useState<TmdbSearchResult[]>([]);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [errorRecommendations, setErrorRecommendations] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  // --- Callback function for SearchBar ---
+  const handleItemSelected = useCallback((item: TmdbSearchResult) => {
+    console.log('Item selected on Page:', item);
+    setSelectedItem(item); // Update state with the selected movie/show
+    setRecommendations([]); // Clear previous recommendations
+    setErrorRecommendations(null); // Clear previous errors
+  }, []); // Empty dependency array, function doesn't change
+
+  // --- Effect to fetch recommendations when selectedItem changes ---
+  useEffect(() => {
+    // Don't fetch if no item is selected
+    if (!selectedItem) {
+      return;
+    }
+
+    // *** ADDED DIAGNOSTIC LOGS HERE ***
+    console.log("--- Debug: Fetching Recommendations ---");
+    console.log("Selected Item:", selectedItem);
+    console.log("Selected Item ID:", selectedItem.id);
+    console.log("Type of ID:", typeof selectedItem.id);
+    console.log("Selected Item media_type:", selectedItem.media_type);
+    console.log("Type of media_type:", typeof selectedItem.media_type);
+    // *** END DIAGNOSTIC LOGS ***
+
+    // Define the async function to fetch recommendations
+    const fetchRecommendations = async () => {
+      // Ensure necessary details are present (check ID and media_type)
+      // Also ensure ID is a number before proceeding
+      if (!selectedItem.id || typeof selectedItem.id !== 'number' || !selectedItem.media_type || selectedItem.media_type === 'person') {
+          console.error("Selected item is missing ID/media_type, ID is not a number, or is a person.", selectedItem);
+          setErrorRecommendations("Invalid item selected for recommendations."); // Set error state
+          setSelectedItem(null); // Optionally reset selected item
+          setIsLoadingRecommendations(false); // Ensure loading stops
+          return; // Stop execution
+      }
+
+      setIsLoadingRecommendations(true);
+      setErrorRecommendations(null); // Clear previous errors
+      // Fixed typo: Workspaceing -> Fetching
+      console.log(`Workspaceing recommendations for ${selectedItem.media_type} ID: ${selectedItem.id}`);
+
+      try {
+        // *** CORRECTED URL CONSTRUCTION ***
+        const response = await fetch(`/api/recommendations?id=${selectedItem.id}&mediaType=${selectedItem.media_type}`);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+          console.error(`API Recommendations Error: ${response.status} ${response.statusText}`, errorData);
+          throw new Error(errorData.error || `Failed to fetch recommendations: ${response.status}`);
+        }
+
+        const results: TmdbSearchResult[] = await response.json();
+        setRecommendations(results);
+        console.log('Recommendations received:', results);
+
+      } catch (error) {
+        console.error("Error fetching recommendations:", error);
+        if (error instanceof Error) {
+            setErrorRecommendations(error.message);
+        } else {
+            setErrorRecommendations("An unknown error occurred.");
+        }
+        setRecommendations([]); // Clear recommendations on error
+      } finally {
+        setIsLoadingRecommendations(false);
+      }
+    };
+
+    fetchRecommendations(); // Execute the fetch function
+
+  }, [selectedItem]); // Re-run this effect only when selectedItem changes
+
+  return (
+    <main className="flex min-h-screen flex-col items-center p-6 pt-12 md:p-12"> {/* More top padding */}
+      {/* Search Section */}
+      <div className="z-10 w-full max-w-xl items-center justify-center text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              Find Your Next Watch
+          </h1>
+          <p className="text-gray-400 mb-6">
+              Search for a movie or TV show to get recommendations.
+          </p>
+          <div className="mt-6">
+              {/* Pass the handler function down to SearchBar */}
+              <SearchBar onItemSelected={handleItemSelected} />
+          </div>
+      </div>
+
+      {/* Recommendations Section */}
+      <div className="w-full max-w-6xl mt-4 px-4"> {/* Wider container, added padding */}
+        {/* Title for Recommendations (only shows if an item was selected and loaded successfully) */}
+        {selectedItem && !isLoadingRecommendations && !errorRecommendations && recommendations.length > 0 && (
+            <h2 className="text-2xl font-semibold text-center mb-6">
+                Recommendations based on "{selectedItem.title || selectedItem.name}"
+            </h2>
+        )}
+
+        {/* Loading State */}
+        {isLoadingRecommendations && (
+          <p className="text-center text-blue-400 text-lg">Loading Recommendations...</p>
+          // You could replace this text with a spinner component later
+        )}
+
+        {/* Error State */}
+        {errorRecommendations && (
+          <p className="text-center text-red-500">Error: {errorRecommendations}</p>
+        )}
+
+        {/* No Results State (after loading and no error) */}
+        {!isLoadingRecommendations && !errorRecommendations && selectedItem && recommendations.length === 0 && (
+            <p className="text-center text-gray-500">No recommendations found for "{selectedItem.title || selectedItem.name}".</p>
+        )}
+
+        {/* Render RecommendationList Component */}
+        {!isLoadingRecommendations && !errorRecommendations && recommendations.length > 0 && (
+           <RecommendationList recommendations={recommendations} />
+        )}
+      </div>
+    </main>
   );
 }
