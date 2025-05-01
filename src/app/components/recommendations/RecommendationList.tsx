@@ -36,7 +36,6 @@ export default function RecommendationList({ recommendations }: RecommendationLi
                   fill // Use fill to cover the container
                   className="object-cover" // Cover the area
                   sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16.6vw" // Help browser optimize image loading
-                  unoptimized={process.env.NODE_ENV === 'development'}
                 />
               ) : (
                 <div className="w-full h-full bg-gray-700 flex items-center justify-center text-xs text-gray-400">

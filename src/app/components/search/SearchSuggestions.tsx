@@ -51,7 +51,6 @@ export default function SearchSuggestions({
                   width={40} // Smaller image size
                   height={60} // Adjust height based on aspect ratio (approx 1:1.5)
                   className="rounded object-cover"
-                  unoptimized={process.env.NODE_ENV === 'development'} // Prevent errors with external URLs in dev
                 />
               ) : (
                 // Placeholder if no poster
