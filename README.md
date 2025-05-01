@@ -118,10 +118,10 @@ pnpm install
 **3. Set up Environment Variables**
 Create a file named .env in the project root
 Add the following environment variables with your actual keys:
-# Get from TMDb ([https://www.themoviedb.org/settings/api](https://www.themoviedb.org/settings/api))
+Get from TMDb ([https://www.themoviedb.org/settings/api](https://www.themoviedb.org/settings/api))
 TMDB_API_KEY=your_tmdb_api_key_here
 
-# Get from Supabase Project Settings > API
+Get from Supabase Project Settings > API
 SUPABASE_URL=your_supabase_project_url_here
 SUPABASE_SERVICE_KEY=your_supabase_service_role_key_here
 
