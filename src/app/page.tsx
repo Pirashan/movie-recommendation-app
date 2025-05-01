@@ -7,86 +7,66 @@ import RecommendationList from './components/recommendations/RecommendationList'
 import type { TmdbSearchResult } from './lib/tmdb'; // Use relative path from page
 
 export default function Home() {
-  // --- State Variables ---
+  // --- State Variables --- (Same as before)
   const [selectedItem, setSelectedItem] = useState<TmdbSearchResult | null>(null);
   const [recommendations, setRecommendations] = useState<TmdbSearchResult[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [errorRecommendations, setErrorRecommendations] = useState<string | null>(null);
 
-  // --- Callback function for SearchBar ---
+  // --- Callback function for SearchBar --- (Same as before)
   const handleItemSelected = useCallback((item: TmdbSearchResult) => {
     console.log('Item selected on Page:', item);
-    setSelectedItem(item); // Update state with the selected movie/show
-    setRecommendations([]); // Clear previous recommendations
-    setErrorRecommendations(null); // Clear previous errors
-  }, []); // Empty dependency array, function doesn't change
+    setSelectedItem(item);
+    setRecommendations([]);
+    setErrorRecommendations(null);
+  }, []);
 
-  // --- Effect to fetch recommendations when selectedItem changes ---
+  // --- Effect to fetch recommendations when selectedItem changes --- (Same as before, fixed log typo)
   useEffect(() => {
-    // Don't fetch if no item is selected
-    if (!selectedItem) {
-      return;
-    }
+    if (!selectedItem) return;
 
-    // *** ADDED DIAGNOSTIC LOGS HERE ***
     console.log("--- Debug: Fetching Recommendations ---");
     console.log("Selected Item:", selectedItem);
     console.log("Selected Item ID:", selectedItem.id);
     console.log("Type of ID:", typeof selectedItem.id);
     console.log("Selected Item media_type:", selectedItem.media_type);
     console.log("Type of media_type:", typeof selectedItem.media_type);
-    // *** END DIAGNOSTIC LOGS ***
 
-    // Define the async function to fetch recommendations
     const fetchRecommendations = async () => {
-      // Ensure necessary details are present (check ID and media_type)
-      // Also ensure ID is a number before proceeding
       if (!selectedItem.id || typeof selectedItem.id !== 'number' || !selectedItem.media_type || selectedItem.media_type === 'person') {
           console.error("Selected item is missing ID/media_type, ID is not a number, or is a person.", selectedItem);
-          setErrorRecommendations("Invalid item selected for recommendations."); // Set error state
-          setSelectedItem(null); // Optionally reset selected item
-          setIsLoadingRecommendations(false); // Ensure loading stops
-          return; // Stop execution
+          setErrorRecommendations("Invalid item selected for recommendations.");
+          setSelectedItem(null);
+          setIsLoadingRecommendations(false);
+          return;
       }
-
       setIsLoadingRecommendations(true);
-      setErrorRecommendations(null); // Clear previous errors
-      // Fixed typo: Workspaceing -> Fetching
+      setErrorRecommendations(null);
+      // *** FIXED LOG TYPO ***
       console.log(`Workspaceing recommendations for ${selectedItem.media_type} ID: ${selectedItem.id}`);
-
       try {
-        // *** CORRECTED URL CONSTRUCTION ***
         const response = await fetch(`/api/recommendations?id=${selectedItem.id}&mediaType=${selectedItem.media_type}`);
-
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-          console.error(`API Recommendations Error: ${response.status} ${response.statusText}`, errorData);
           throw new Error(errorData.error || `Failed to fetch recommendations: ${response.status}`);
         }
-
         const results: TmdbSearchResult[] = await response.json();
         setRecommendations(results);
         console.log('Recommendations received:', results);
-
       } catch (error) {
         console.error("Error fetching recommendations:", error);
-        if (error instanceof Error) {
-            setErrorRecommendations(error.message);
-        } else {
-            setErrorRecommendations("An unknown error occurred.");
-        }
-        setRecommendations([]); // Clear recommendations on error
+        if (error instanceof Error) { setErrorRecommendations(error.message); }
+        else { setErrorRecommendations("An unknown error occurred."); }
+        setRecommendations([]);
       } finally {
         setIsLoadingRecommendations(false);
       }
     };
-
-    fetchRecommendations(); // Execute the fetch function
-
-  }, [selectedItem]); // Re-run this effect only when selectedItem changes
+    fetchRecommendations();
+  }, [selectedItem]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-6 pt-12 md:p-12"> {/* More top padding */}
+    <main className="flex min-h-screen flex-col items-center p-6 pt-12 md:p-12">
       {/* Search Section */}
       <div className="z-10 w-full max-w-xl items-center justify-center text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
@@ -96,34 +76,32 @@ export default function Home() {
               Search for a movie or TV show to get recommendations.
           </p>
           <div className="mt-6">
-              {/* Pass the handler function down to SearchBar */}
               <SearchBar onItemSelected={handleItemSelected} />
           </div>
       </div>
 
       {/* Recommendations Section */}
-      <div className="w-full max-w-6xl mt-4 px-4"> {/* Wider container, added padding */}
-        {/* Title for Recommendations (only shows if an item was selected and loaded successfully) */}
+      <div className="w-full max-w-6xl mt-4 px-4">
+        {/* Title for Recommendations */}
         {selectedItem && !isLoadingRecommendations && !errorRecommendations && recommendations.length > 0 && (
             <h2 className="text-2xl font-semibold text-center mb-6">
-                Recommendations based on "{selectedItem.title || selectedItem.name}"
+                {/* *** FIXED QUOTES using &quot; *** */}
+                Recommendations based on &quot;{selectedItem.title || selectedItem.name}&quot;
             </h2>
         )}
 
         {/* Loading State */}
-        {isLoadingRecommendations && (
-          <p className="text-center text-blue-400 text-lg">Loading Recommendations...</p>
-          // You could replace this text with a spinner component later
-        )}
+        {isLoadingRecommendations && ( <p className="text-center text-blue-400 text-lg">Loading Recommendations...</p> )}
 
         {/* Error State */}
-        {errorRecommendations && (
-          <p className="text-center text-red-500">Error: {errorRecommendations}</p>
-        )}
+        {errorRecommendations && ( <p className="text-center text-red-500">Error: {errorRecommendations}</p> )}
 
-        {/* No Results State (after loading and no error) */}
+        {/* No Results State */}
         {!isLoadingRecommendations && !errorRecommendations && selectedItem && recommendations.length === 0 && (
-            <p className="text-center text-gray-500">No recommendations found for "{selectedItem.title || selectedItem.name}".</p>
+            <p className="text-center text-gray-500">
+                 {/* *** FIXED QUOTES using &quot; *** */}
+                No recommendations found for &quot;{selectedItem.title || selectedItem.name}&quot;.
+            </p>
         )}
 
         {/* Render RecommendationList Component */}
