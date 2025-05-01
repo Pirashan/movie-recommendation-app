@@ -71,6 +71,7 @@ This API route runs on the server when a user selects an item in the frontend.
 * **Output:** Returns a JSON array containing the details of the recommended items to the frontend.
 
 ## Project Structure
+```
 ├── /public                 # Static assets
 ├── /scripts                # Standalone Node.js/TS scripts (data fetching, vector calculation)
 │   ├── fetch-tmdb-data.ts  # (Or Workspace-tmdb-data.ts) Fetches data -> Supabase
@@ -98,18 +99,20 @@ This API route runs on the server when a user selects an item in the frontend.
 ├── postcss.config.js       # PostCSS config (for Tailwind)
 ├── tailwind.config.ts      # Tailwind CSS config
 └── tsconfig.json           # TypeScript config
+```
 
 ## Getting Started (Local Development)
 
 **1. Clone the repository:**
 git clone <https://github.com/Pirashan/movie-recommendation-app.git>
-cd <movie-recommendation-app>
+
+cd movie-recommendation-app
 
 **2. Install Dependencies :**
 npm install
-# or
+or
 yarn install
-# or
+or
 pnpm install
 
 **3. Set up Environment Variables**
